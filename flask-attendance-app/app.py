@@ -19,16 +19,17 @@ ADMIN_PASSWORD = "attendance123"  # Change this in production!
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-# Create instance directory if it doesn't exist
-instance_dir = os.path.join(basedir, "instance")
-if not os.path.exists(instance_dir):
-    os.makedirs(instance_dir)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_dir, "attendance.db")}'
+# Use a simple database path that works on Render
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "attendance.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
 db.init_app(app)
+
+# Create database tables on startup
+with app.app_context():
+    db.create_all()
+    print("Database tables created successfully!")
 
 # Authentication decorator
 def admin_required(f):
