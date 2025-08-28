@@ -31,8 +31,16 @@
                 </button>
             </div>
         {% elif active_location %}
-            <h2 style="color: white; margin: 0 0 10px 0;">📍 Location Set: {{ active_location.name }}</h2>
-            <p style="margin: 10px 0; opacity: 0.9;">Location is ready! Start a new meeting session.</p>
+            <h2 style="color: white; margin: 0 0 10px 0;">📍 Location: {{ active_location.name }}</h2>
+            {% if last_ended_session %}
+                <p style="margin: 10px 0; opacity: 0.9;">
+                    ✅ Last meeting "{{ last_ended_session.meeting_name }}" ended successfully.
+                </p>
+                <p style="margin: 5px 0; opacity: 0.8; font-size: 0.9rem;">
+                    📊 {{ last_ended_session.attendee_count }} attendees were archived.
+                </p>
+            {% endif %}
+            <p style="margin: 10px 0; opacity: 0.9;">Ready to start a new meeting at this location.</p>
             <div style="margin-top: 20px;">
                 <a href="{{ url_for('start_meeting') }}" style="background: rgba(40,167,69,1); border: none; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; display: inline-block; transition: background 0.3s;">
                     🚀 Start New Meeting
@@ -98,8 +106,19 @@
     <!-- No Active Meeting Message -->
     <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;">
         {% if active_location %}
-            <h3 style="color: #666; margin-bottom: 15px;">🎯 Location Ready</h3>
-            <p style="color: #666;">Your meeting location "{{ active_location.name }}" is set up and ready.</p>
+            {% if last_ended_session %}
+                <h3 style="color: #28a745; margin-bottom: 15px;">✅ Meeting Completed</h3>
+                <p style="color: #666;">Meeting "{{ last_ended_session.meeting_name }}" has been successfully ended and archived.</p>
+                <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #c3e6cb;">
+                    <p style="color: #155724; margin: 0;">
+                        📊 <strong>{{ last_ended_session.attendee_count }} attendees</strong> have been recorded and archived for reports.
+                    </p>
+                </div>
+                <p style="color: #666;">Location "{{ active_location.name }}" is ready for your next meeting.</p>
+            {% else %}
+                <h3 style="color: #666; margin-bottom: 15px;">🎯 Location Ready</h3>
+                <p style="color: #666;">Your meeting location "{{ active_location.name }}" is set up and ready.</p>
+            {% endif %}
             <p style="color: #666;">Click "Start New Meeting" above to generate QR codes and begin attendance tracking.</p>
         {% else %}
             <h3 style="color: #666; margin-bottom: 15px;">📍 Setup Required</h3>

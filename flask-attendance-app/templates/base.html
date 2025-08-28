@@ -163,4 +163,16 @@
                 <li><a href="{{ url_for('admin_login') }}">🔐 Admin Login</a></li>
             {% endif %}
         </ul>
-  
+    </nav>
+    
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="footer">
+        <p>&copy; 2025 Mobile Attendance Tracker</p>
+    </footer>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
