@@ -1,0 +1,32 @@
+# Virtual Environment
+myvenv/
+venv/
+env/
+ENV/
+
+# Database files
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
