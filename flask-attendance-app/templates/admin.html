@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - QR Code Generator{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px; width: 100%;">
+        <h1 style="color: #007bff; margin: 20px auto; text-align: center; width: 100%;">🔧 Admin Panel</h1>
+        <p style="color: #666; font-size: 16px; text-align: center; margin: 0 auto;">Generate QR codes for attendance tracking</p>
+    </div>
+    
+    <!-- Live Attendance Counter & Meeting Status -->
+    <div style="background: linear-gradient(135deg, #28a745, #20c997); padding: 20px; border-radius: 12px; margin-bottom: 20px; color: white; text-align: center; box-shadow: 0 4px 15px rgba(40,167,69,0.3);">
+        {% if active_session and active_location %}
+            <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.5rem;">📍 Active Meeting: {{ active_session.meeting_name }}</h2>
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 8px; min-width: 120px;">
+                    <div style="font-size: 1.8rem; font-weight: bold;">{{ attendance_count }}</div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">👥 Current Attendees</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 8px; min-width: 120px;">
+                    <div style="font-size: 1.2rem; font-weight: bold;">{{ active_location.radius_meters }}m</div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">🎯 Radius</div>
+                </div>
+            </div>
+            
+            <!-- End Meeting Button -->
+            <div style="margin-top: 20px;">
+                <button onclick="confirmEndMeeting()" style="background: rgba(220,53,69,0.9); border: none; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: background 0.3s;">
+                    🏁 End Current Meeting
+                </button>
+            </div>
+        {% elif active_location %}
+            <h2 style="color: white; margin: 0 0 10px 0;">📍 Location Set: {{ active_location.name }}</h2>
+            <p style="margin: 10px 0; opacity: 0.9;">Location is ready! Start a new meeting session.</p>
+            <div style="margin-top: 20px;">
+                <a href="{{ url_for('start_meeting') }}" style="background: rgba(40,167,69,1); border: none; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; display: inline-block; transition: background 0.3s;">
+                    🚀 Start New Meeting
+                </a>
+                <a href="{{ url_for('location_setup') }}" style="background: rgba(253,126,20,1); border: none; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; display: inline-block; margin-left: 10px; transition: background 0.3s;">
+                    📍 Update Location
+                </a>
+            </div>
+        {% else %}
+            <h2 style="color: white; margin: 0 0 10px 0;">⚠️ No Meeting Location Set</h2>
+            <p style="margin: 10px 0; opacity: 0.9;">Set up a meeting location first to get started</p>
+            <div style="margin-top: 20px;">
+                <a href="{{ url_for('location_setup') }}" style="background: rgba(253,126,20,1); border: none; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; display: inline-block; transition: background 0.3s;">
+                    📍 Set Meeting Location
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if active_session and active_location %}
+    <!-- QR Code Section - Only show when meeting is active -->
+    
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <h2 style="color: #333; margin-bottom: 20px; text-align: center;">📱 QR Code for Attendance</h2>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <div style="display: inline-block; padding: 20px; background: #f8f9fa; border-radius: 12px; border: 2px dashed #007bff;">
+                <img src="{{ url_for('generate_qr') }}" alt="Attendance QR Code" style="max-width: 300px; width: 100%; height: auto;">
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <p style="color: #666; font-size: 16px; margin-bottom: 15px;">
+                <strong>Instructions:</strong>
+            </p>
+            <ol style="text-align: left; color: #666; max-width: 400px; margin: 0 auto;">
+                <li style="margin-bottom: 8px;">Print this page or display on a screen</li>
+                <li style="margin-bottom: 8px;">Place at meeting entrance or venue</li>
+                <li style="margin-bottom: 8px;">Attendees scan with phone camera</li>
+                <li style="margin-bottom: 8px;">They fill the form and submit attendance</li>
+            </ol>
+        </div>
+        
+        <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #c3e6cb;">
+            <p style="color: #155724; text-align: center; margin: 0; font-weight: 500;">
+                ✅ QR Code links to: <code id="qr-url" style="background: #f8f9fa; padding: 2px 4px; border-radius: 4px;"></code>
+            </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="window.print()" class="btn btn-primary" style="margin: 0 5px 10px 5px; width: calc(50% - 10px); display: inline-block;">
+                🖨️ Print QR Code
+            </button>
+            <a href="{{ url_for('generate_qr') }}" download="attendance-qr-code.png" class="btn btn-primary" style="text-decoration: none; display: inline-block; background-color: #28a745; margin: 0 5px 10px 5px; width: calc(50% - 10px);">
+                💾 Download QR Code
+            </a>
+            <a href="{{ url_for('location_setup') }}" class="btn btn-primary" style="text-decoration: none; display: inline-block; background-color: #fd7e14; margin: 10px 5px 10px 5px; width: calc(100% - 10px);">
+                📍 Setup Meeting Location
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <!-- No Active Meeting Message -->
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center;">
+        {% if active_location %}
+            <h3 style="color: #666; margin-bottom: 15px;">🎯 Location Ready</h3>
+            <p style="color: #666;">Your meeting location "{{ active_location.name }}" is set up and ready.</p>
+            <p style="color: #666;">Click "Start New Meeting" above to generate QR codes and begin attendance tracking.</p>
+        {% else %}
+            <h3 style="color: #666; margin-bottom: 15px;">📍 Setup Required</h3>
+            <p style="color: #666;">Set up your meeting location first, then you can start tracking attendance with QR codes.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h3 style="color: #333; margin-bottom: 15px;">📋 Quick Stats</h3>
+        <p style="color: #666; margin-bottom: 10px;">• QR Code automatically updates with your current server address</p>
+        <p style="color: #666; margin-bottom: 10px;">• Works on both local network and internet deployment</p>
+        <p style="color: #666; margin-bottom: 10px;">• Optimized for mobile scanning and form completion</p>
+        <p style="color: #666;">• Print-ready - works on paper, screens, or digital displays</p>
+    </div>
+</div>
+
+<!-- Hidden form for ending meeting -->
+<form id="endMeetingForm" method="POST" action="{{ url_for('end_meeting') }}" style="display: none;">
+</form>
+
+{% block scripts %}
+<script>
+// Show the current QR URL - use HTTP for better compatibility
+document.addEventListener('DOMContentLoaded', function() {
+    // Use HTTP for mobile devices - better compatibility, faster loading
+    const remoteUrl = "http://192.168.43.228:5000{{ url_for('attendance_form') }}";
+    document.getElementById('qr-url').textContent = remoteUrl;
+});
+
+// Confirm ending meeting with dialog
+function confirmEndMeeting() {
+    const meetingName = "{{ active_session.meeting_name if active_session else '' }}";
+    const attendeeCount = "{{ attendance_count }}";
+    
+    const message = `Are you sure you want to end "${meetingName}"?\n\n` +
+                   `• ${attendeeCount} attendees will be archived\n` +
+                   `• Attendance data will be preserved for reports\n` +
+                   `• You can start a new meeting afterward\n\n` +
+                   `This action cannot be undone.`;
+    
+    if (confirm(message)) {
+        document.getElementById('endMeetingForm').submit();
+    }
+}
+</script>
+{% endblock %}
+
+{% endblock %}

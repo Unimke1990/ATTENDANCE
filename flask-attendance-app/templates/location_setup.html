@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Location Setup - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #007bff; margin-bottom: 10px;">📍 Meeting Location Setup</h1>
+        <p style="color: #666; font-size: 16px;">Set the meeting location for attendance validation</p>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'success' %}
+                    <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+                        <strong>✅ Success:</strong> {{ message }}
+                    </div>
+                {% else %}
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                        <strong>⚠️ Error:</strong> {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Current Active Location -->
+    {% if active_location %}
+    <div style="background: #d1ecf1; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bee5eb;">
+        <h3 style="color: #0c5460; margin-bottom: 10px;">📍 Current Active Location</h3>
+        <p style="color: #0c5460; margin: 5px 0;"><strong>Name:</strong> {{ active_location.name }}</p>
+        <p style="color: #0c5460; margin: 5px 0;"><strong>Coordinates:</strong> {{ active_location.latitude }}, {{ active_location.longitude }}</p>
+        <p style="color: #0c5460; margin: 5px 0;"><strong>Radius:</strong> {{ active_location.radius_meters }} meters</p>
+    </div>
+    {% endif %}
+    
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <form method="POST" action="{{ url_for('save_location') }}" id="locationForm">
+            <div class="form-group">
+                <label for="name">📝 Meeting Name:</label>
+                <input type="text" id="name" name="name" required 
+                       placeholder="e.g., Board Meeting - Conference Room A">
+            </div>
+            
+            <div class="form-group">
+                <label for="address">📍 Meeting Address (Optional):</label>
+                <input type="text" id="address" name="address" 
+                       placeholder="e.g., 123 Main St, Conference Room A">
+                <p style="color: #666; font-size: 14px; margin-top: 5px;">
+                    This will be displayed to attendees for reference
+                </p>
+            </div>
+            
+            <!-- GPS Detection Section -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #333; margin-bottom: 15px;">🌍 Location Detection</h3>
+                <button type="button" id="getCurrentLocation" class="btn btn-primary" style="margin-bottom: 15px; background-color: #28a745;">
+                    📍 Use Current Location
+                </button>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+                    Click to automatically detect your current GPS coordinates (you must be at the meeting venue)
+                </p>
+                <div id="locationStatus" style="display: none;"></div>
+            </div>
+            
+            <!-- Manual Entry Section -->
+            <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #856404; margin-bottom: 15px;">✏️ Manual Entry (Alternative)</h3>
+                <div class="form-group">
+                    <label for="latitude">🌐 Latitude:</label>
+                    <input type="number" step="any" id="latitude" name="latitude" required 
+                           placeholder="e.g., 40.7128">
+                </div>
+                
+                <div class="form-group">
+                    <label for="longitude">🌐 Longitude:</label>
+                    <input type="number" step="any" id="longitude" name="longitude" required 
+                           placeholder="e.g., -74.0060">
+                </div>
+                
+                <p style="color: #856404; font-size: 14px; margin-top: 10px;">
+                    💡 <strong>Tip:</strong> Find coordinates on Google Maps → Right-click location → Click coordinates to copy
+                </p>
+            </div>
+            
+            <div class="form-group">
+                <label for="radius">🎯 Allowed Radius (meters):</label>
+                <select id="radius" name="radius" style="width: 100%; padding: 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                    <option value="20">20 meters (small room)</option>
+                    <option value="30" selected>30 meters (medium venue)</option>
+                    <option value="50">50 meters (large venue)</option>
+                    <option value="100">100 meters (outdoor event)</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="margin-top: 20px;">
+                💾 Save Meeting Location
+            </button>
+        </form>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.getElementById('getCurrentLocation').addEventListener('click', function() {
+    const button = this;
+    const status = document.getElementById('locationStatus');
+    
+    button.disabled = true;
+    button.textContent = '🔄 Getting Location...';
+    status.style.display = 'block';
+    status.innerHTML = '<p style="color: #666;">Requesting your location...</p>';
+    
+    if (navigator.geolocation) {
+        console.log('Geolocation is supported');
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                console.log('Location success:', position);
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
+                
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lon;
+                
+                status.innerHTML = `
+                    <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 4px;">
+                        ✅ Location detected!<br>
+                        📍 Coordinates: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>
+                        🎯 Accuracy: ±${Math.round(accuracy)} meters
+                    </div>
+                `;
+                
+                button.textContent = '✅ Location Detected';
+                button.style.backgroundColor = '#28a745';
+            },
+            function(error) {
+                console.error('Location error:', error);
+                let errorMsg = 'Unable to get location. ';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg += 'Please allow location access and try again.';
+                        console.log('Permission denied for location');
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg += 'Location information is unavailable.';
+                        console.log('Position unavailable');
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg += 'Location request timed out. Try again.';
+                        console.log('Location timeout');
+                        break;
+                    default:
+                        errorMsg += 'Unknown location error.';
+                        console.log('Unknown location error:', error);
+                        break;
+                }
+                
+                status.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px;">
+                        ❌ ${errorMsg}<br>
+                        Please use manual entry below.
+                    </div>
+                `;
+                
+                button.textContent = '📍 Try Again';
+                button.disabled = false;
+                button.style.backgroundColor = '#dc3545';
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000
+            }
+        );
+    } else {
+        console.error('Geolocation is not supported by this browser');
+        status.innerHTML = `
+            <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px;">
+                ❌ Geolocation is not supported by this browser.<br>
+                Please use manual entry below.
+            </div>
+        `;
+        button.textContent = '❌ Not Supported';
+        button.disabled = false;
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

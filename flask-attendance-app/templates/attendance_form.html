@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Attendance - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto;">
+    <!-- Current Meeting Info -->
+    {% if active_session and active_location %}
+    <div style="background: linear-gradient(135deg, #007bff, #0056b3); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; color: white; box-shadow: 0 4px 15px rgba(0,123,255,0.3);">
+        <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.4rem;">📍 {{ active_session.meeting_name }}</h2>
+        <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 14px;">
+            🎯 Attendance Zone: {{ active_location.radius_meters }}m radius
+        </p>
+        <p style="color: rgba(255,255,255,0.7); margin: 5px 0 0 0; font-size: 12px;">
+            Started: {{ active_session.start_time.strftime('%H:%M on %b %d') }}
+        </p>
+    </div>
+    {% else %}
+    <div style="background: #f8d7da; color: #721c24; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+        <h2 style="color: #721c24; margin: 0 0 10px 0;">⚠️ No Active Meeting</h2>
+        <p style="margin: 0;">This meeting session has ended. Please check with the organizer.</p>
+    </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #007bff; margin-bottom: 10px;">✍️ Sign Attendance</h1>
+        <p style="color: #666; font-size: 16px;">Please fill out all fields to record your attendance</p>
+    </div>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #f5c6cb;">
+                    <strong>⚠️ Notice:</strong> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <form method="POST" action="/submit-attendance">
+            <div class="form-group">
+                <label for="firstname">📝 First Name:</label>
+                <input type="text" id="firstname" name="firstname" required 
+                       placeholder="Enter your first name">
+            </div>
+            
+            <div class="form-group">
+                <label for="lastname">📝 Last Name:</label>
+                <input type="text" id="lastname" name="lastname" required 
+                       placeholder="Enter your last name">
+            </div>
+            
+            <div class="form-group">
+                <label for="surname">👤 Surname:</label>
+                <input type="text" id="surname" name="surname" required 
+                       placeholder="Enter your surname">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">📧 Email Address:</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="your.email@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">📱 Phone Number:</label>
+                <input type="tel" id="phone" name="phone" required 
+                       placeholder="Enter your phone number">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="submitBtn" style="margin-top: 20px;">
+                ✅ Submit Attendance
+            </button>
+        </form>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+        <p>🔒 Your information is secure and will only be used for attendance tracking.</p>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus first input for better mobile UX
+    document.getElementById('firstname').focus();
+    
+    // Simple form submission handler
+    const form = document.querySelector('form');
+    const submitBtn = document.getElementById('submitBtn');
+    let isSubmitting = false;
+    
+    form.addEventListener('submit', function(e) {
+        if (isSubmitting) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Set submitting state
+        isSubmitting = true;
+        submitBtn.innerHTML = '⏳ Submitting...';
+        submitBtn.disabled = true;
+        
+        // Let form submit naturally
+        console.log('Form is submitting...');
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

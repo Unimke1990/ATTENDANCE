@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Start New Meeting{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #007bff; margin: 20px auto;">🚀 Start New Meeting</h1>
+        <p style="color: #666; font-size: 16px;">Create a new meeting session at your set location</p>
+    </div>
+    
+    <!-- Location Info -->
+    <div style="background: #e3f2fd; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-left: 4px solid #2196f3;">
+        <h3 style="color: #1976d2; margin-bottom: 10px; font-size: 1.2rem;">📍 Meeting Location</h3>
+        <p style="color: #333; margin-bottom: 5px;"><strong>{{ location.name }}</strong></p>
+        {% if location.address %}
+            <p style="color: #666; margin-bottom: 5px;">{{ location.address }}</p>
+        {% endif %}
+        <p style="color: #666; margin: 0;">📏 Check-in radius: {{ location.radius_meters }} meters</p>
+    </div>
+    
+    <!-- Meeting Form -->
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <form method="POST" style="width: 100%;">
+            <div style="margin-bottom: 25px;">
+                <label for="meeting_name" style="display: block; color: #333; font-weight: 500; margin-bottom: 8px; font-size: 16px;">
+                    📝 Meeting Name *
+                </label>
+                <input type="text" 
+                       id="meeting_name" 
+                       name="meeting_name" 
+                       required 
+                       placeholder="e.g., Weekly Team Meeting, Training Session"
+                       style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: border-color 0.3s;"
+                       onfocus="this.style.borderColor='#007bff'"
+                       onblur="this.style.borderColor='#ddd'">
+            </div>
+            
+            <div style="margin-bottom: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                <h4 style="color: #495057; margin-bottom: 10px; font-size: 1rem;">ℹ️ What happens next:</h4>
+                <ul style="color: #6c757d; margin: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 5px;">Meeting session starts immediately</li>
+                    <li style="margin-bottom: 5px;">QR code will be generated for attendance</li>
+                    <li style="margin-bottom: 5px;">Attendees can scan and register</li>
+                    <li>You can end the meeting anytime from admin panel</li>
+                </ul>
+            </div>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="submit" 
+                        style="flex: 1; min-width: 150px; background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: background-color 0.3s;"
+                        onmouseover="this.style.backgroundColor='#218838'"
+                        onmouseout="this.style.backgroundColor='#28a745'">
+                    🚀 Start Meeting
+                </button>
+                <a href="{{ url_for('admin') }}" 
+                   style="flex: 1; min-width: 100px; background: #6c757d; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 16px; font-weight: 500; text-align: center; transition: background-color 0.3s; display: flex; align-items: center; justify-content: center;"
+                   onmouseover="this.style.backgroundColor='#5a6268'"
+                   onmouseout="this.style.backgroundColor='#6c757d'">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{{ url_for('location_setup') }}" style="color: #007bff; text-decoration: none; font-size: 14px;">
+            📍 Need to change location? Update meeting location →
+        </a>
+    </div>
+</div>
+{% endblock %}

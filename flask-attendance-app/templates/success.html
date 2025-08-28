@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Success - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto; text-align: center; padding: 20px 0;">
+    
+    <div style="background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0;">
+        <div style="font-size: 80px; color: #28a745; margin-bottom: 20px;">🎉</div>
+        <h1 style="color: #28a745; margin-bottom: 20px; font-size: 1.8rem;">
+            Success!
+        </h1>
+        <p style="font-size: 18px; color: #333; margin-bottom: 15px; font-weight: 600;">
+            Your attendance has been recorded successfully!
+        </p>
+        
+        {% if meeting_name %}
+        <div style="background: #d4edda; padding: 15px; border-radius: 8px; border: 1px solid #c3e6cb; margin: 20px 0;">
+            <p style="color: #155724; font-weight: 500; margin: 5px 0;">
+                📍 <strong>Meeting:</strong> {{ meeting_name }}
+            </p>
+            <p style="color: #155724; font-weight: 500; margin: 5px 0;">
+                👥 <strong>You are attendee #{{ attendance_count }}</strong>
+            </p>
+        </div>
+        {% endif %}
+        
+        <p style="color: #666; font-size: 16px; margin-bottom: 25px;">
+            Thank you for participating in today's meeting.
+        </p>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <a href="{{ url_for('index') }}" class="btn btn-primary" style="text-decoration: none; display: inline-block;">
+            🏠 Return to Home
+        </a>
+    </div>
+    
+    <div style="margin-top: 20px; color: #666; font-size: 14px;">
+        <p>You can now close this page or return to the home screen.</p>
+    </div>
+    
+</div>
+
+{% block scripts %}
+<script>
+// Optional: Auto-redirect to home after 10 seconds
+setTimeout(function() {
+    // Uncomment the next line if you want auto-redirect
+    window.location.href = "{{ url_for('index') }}";
+}, 10000);
+</script>
+{% endblock %}
+
+{% endblock %}

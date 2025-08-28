@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}About - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #007bff; margin-bottom: 10px;">ℹ️ About This App</h1>
+        <p style="color: #666; font-size: 16px;">Learn more about our attendance tracking system</p>
+    </div>
+    
+    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <h2 style="color: #333; margin-bottom: 15px;">📱 What is this?</h2>
+        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            This is a modern, mobile-first attendance tracking application designed for meetings, events, and gatherings. 
+            Simply scan a QR code, fill out your information, and your attendance is recorded instantly.
+        </p>
+        
+        <h2 style="color: #333; margin-bottom: 15px;">✨ Features</h2>
+        <ul style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+            <li>📱 <strong>Mobile-optimized</strong> - Works perfectly on phones</li>
+            <li>🔒 <strong>Secure</strong> - Your information is protected</li>
+            <li>⚡ <strong>Fast</strong> - Takes less than 30 seconds to sign in</li>
+            <li>🚫 <strong>Duplicate prevention</strong> - Can't register twice</li>
+            <li>📊 <strong>Real-time</strong> - Attendance recorded instantly</li>
+            <li>🎯 <strong>Easy access</strong> - Just scan a QR code</li>
+        </ul>
+        
+        <h2 style="color: #333; margin-bottom: 15px;">🔐 Privacy & Security</h2>
+        <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            Your personal information is collected solely for attendance tracking purposes. We use secure database 
+            storage and do not share your information with third parties. Each email and phone number can only 
+            be registered once per event to prevent duplicate entries.
+        </p>
+        
+        <h2 style="color: #333; margin-bottom: 15px;">❓ How to Use</h2>
+        <ol style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+            <li>Scan the QR code displayed at the meeting venue</li>
+            <li>Fill out the attendance form with your information</li>
+            <li>Submit the form to record your attendance</li>
+            <li>You're all set! Enjoy the meeting.</li>
+        </ol>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ url_for('attendance_form') }}" class="btn btn-primary" style="text-decoration: none; display: inline-block;">
+            ✍️ Sign Attendance Now
+        </a>
+    </div>
+</div>
+{% endblock %}
