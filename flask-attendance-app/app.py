@@ -18,7 +18,13 @@ ADMIN_PASSWORD = "attendance123"  # Change this in production!
 # Database configuration
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "instance", "attendance.db")}'
+
+# Create instance directory if it doesn't exist
+instance_dir = os.path.join(basedir, "instance")
+if not os.path.exists(instance_dir):
+    os.makedirs(instance_dir)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(instance_dir, "attendance.db")}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database
