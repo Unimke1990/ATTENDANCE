@@ -90,12 +90,45 @@ def submit_attendance():
         flash('No active meeting session. Please check with the organizer.', 'error')
         return redirect(url_for('index'))
     
-    #get form data
+    # Get form data
     firstname = request.form['firstname']
     lastname = request.form['lastname']
     surname = request.form['surname']
     email = request.form['email']
     phone = request.form['phone']
+    user_latitude = request.form.get('latitude')
+    user_longitude = request.form.get('longitude')
+    
+    # Get active meeting location for validation
+    active_location = get_active_meeting_location()
+    if not active_location:
+        flash('No meeting location set. Please contact the organizer.', 'error')
+        return redirect(url_for('attendance_form'))
+    
+    # GPS Validation - Check if user is within allowed radius
+    if user_latitude and user_longitude:
+        try:
+            user_lat = float(user_latitude)
+            user_lon = float(user_longitude)
+            
+            # Calculate distance from meeting location
+            distance = calculate_distance(
+                active_location.latitude, active_location.longitude,
+                user_lat, user_lon
+            )
+            
+            # Check if user is within allowed radius
+            if distance > active_location.radius_meters:
+                flash(f'You are too far from the meeting location. You are {distance:.1f} meters away, but must be within {active_location.radius_meters} meters to register attendance.', 'error')
+                return redirect(url_for('attendance_form'))
+                
+        except (ValueError, TypeError):
+            flash('Invalid location data. Please enable location services and try again.', 'error')
+            return redirect(url_for('attendance_form'))
+    else:
+        # No GPS data provided - allow manual override but warn
+        flash('Location not detected. Attendance recorded without location verification.', 'warning')
+        user_lat, user_lon = None, None
 
     try:
         # Create a new Attendance record
@@ -104,7 +137,9 @@ def submit_attendance():
             lastname=lastname,
             surname=surname,
             email=email,
-            phone=phone
+            phone=phone,
+            latitude=user_lat,
+            longitude=user_lon
         )
 
         #save to database
