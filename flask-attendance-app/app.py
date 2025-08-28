@@ -197,20 +197,8 @@ def admin():
 @app.route('/generate-qr')
 @admin_required
 def generate_qr():
-    # Force remote IP for QR codes so mobile devices can connect
-    import socket
-    try:
-        # Better way to get network IP
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        remote_ip = s.getsockname()[0]
-        s.close()
-    except:
-        # Fallback to hostname method
-        hostname = socket.gethostname()
-        remote_ip = socket.gethostbyname(hostname)
-    
-    base_url = f"http://{remote_ip}:5000"
+    # Use the current request's domain (works for both local and deployed)
+    base_url = request.url_root.rstrip('/')
     attendance_url = f"{base_url}{url_for('attendance_form')}"
     
     # Generate QR code

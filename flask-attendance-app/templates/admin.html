@@ -142,11 +142,12 @@
 
 {% block scripts %}
 <script>
-// Show the current QR URL - use HTTP for better compatibility
+// Show the current QR URL - use current domain for both local and deployed
 document.addEventListener('DOMContentLoaded', function() {
-    // Use HTTP for mobile devices - better compatibility, faster loading
-    const remoteUrl = "http://192.168.43.228:5000{{ url_for('attendance_form') }}";
-    document.getElementById('qr-url').textContent = remoteUrl;
+    // Use the current domain (works for both local and deployed)
+    const currentDomain = window.location.origin;
+    const attendanceUrl = currentDomain + "{{ url_for('attendance_form') }}";
+    document.getElementById('qr-url').textContent = attendanceUrl;
 });
 
 // Confirm ending meeting with dialog
