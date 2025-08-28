@@ -8,6 +8,7 @@ Flask-SQLAlchemy==3.1.1
 geographiclib==2.1
 geopy==2.4.1
 greenlet==3.2.4
+gunicorn==23.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.2
