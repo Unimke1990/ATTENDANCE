@@ -111,10 +111,18 @@ document.getElementById('getCurrentLocation').addEventListener('click', function
     button.disabled = true;
     button.textContent = '🔄 Getting Location...';
     status.style.display = 'block';
-    status.innerHTML = '<p style="color: #666;">Requesting your location...</p>';
+    status.innerHTML = '<p style="color: #666;">Requesting your location... This may take up to 30 seconds on mobile.</p>';
     
     if (navigator.geolocation) {
         console.log('Geolocation is supported');
+        
+        // Try with less accurate but faster method first
+        const options = {
+            enableHighAccuracy: false,  // Use network/wifi for faster results
+            timeout: 30000,             // 30 second timeout
+            maximumAge: 300000          // Accept 5-minute-old cached location
+        };
+        
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 console.log('Location success:', position);
@@ -137,56 +145,100 @@ document.getElementById('getCurrentLocation').addEventListener('click', function
                 button.style.backgroundColor = '#28a745';
             },
             function(error) {
-                console.error('Location error:', error);
-                let errorMsg = 'Unable to get location. ';
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        errorMsg += 'Please allow location access and try again.';
-                        console.log('Permission denied for location');
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        errorMsg += 'Location information is unavailable.';
-                        console.log('Position unavailable');
-                        break;
-                    case error.TIMEOUT:
-                        errorMsg += 'Location request timed out. Try again.';
-                        console.log('Location timeout');
-                        break;
-                    default:
-                        errorMsg += 'Unknown location error.';
-                        console.log('Unknown location error:', error);
-                        break;
+                console.error('First location attempt failed:', error);
+                
+                // Try again with different settings if timeout
+                if (error.code === error.TIMEOUT) {
+                    console.log('Trying with different options...');
+                    status.innerHTML = '<p style="color: #666;">First attempt timed out. Trying with different settings...</p>';
+                    
+                    // Second attempt with even more relaxed settings
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            console.log('Second attempt successful:', position);
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            const accuracy = position.coords.accuracy;
+                            
+                            document.getElementById('latitude').value = lat;
+                            document.getElementById('longitude').value = lon;
+                            
+                            status.innerHTML = `
+                                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 4px;">
+                                    ✅ Location detected on retry!<br>
+                                    📍 Coordinates: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>
+                                    🎯 Accuracy: ±${Math.round(accuracy)} meters
+                                </div>
+                            `;
+                            
+                            button.textContent = '✅ Location Detected';
+                            button.style.backgroundColor = '#28a745';
+                        },
+                        function(secondError) {
+                            console.error('Second attempt also failed:', secondError);
+                            handleLocationError(secondError);
+                        },
+                        {
+                            enableHighAccuracy: false,
+                            timeout: 60000,  // 1 minute timeout for second attempt
+                            maximumAge: 600000  // Accept 10-minute-old location
+                        }
+                    );
+                } else {
+                    handleLocationError(error);
                 }
-                
-                status.innerHTML = `
-                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px;">
-                        ❌ ${errorMsg}<br>
-                        Please use manual entry below.
-                    </div>
-                `;
-                
-                button.textContent = '📍 Try Again';
-                button.disabled = false;
-                button.style.backgroundColor = '#dc3545';
             },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 60000
-            }
+            options
         );
     } else {
-        console.error('Geolocation is not supported by this browser');
+        console.log('Geolocation not supported');
         status.innerHTML = `
             <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px;">
                 ❌ Geolocation is not supported by this browser.<br>
                 Please use manual entry below.
             </div>
         `;
-        button.textContent = '❌ Not Supported';
+        button.textContent = '📍 Not Supported';
         button.disabled = false;
+        button.style.backgroundColor = '#dc3545';
     }
 });
+
+function handleLocationError(error) {
+    const button = document.getElementById('getCurrentLocation');
+    const status = document.getElementById('locationStatus');
+    
+    let errorMsg = 'Unable to get location. ';
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            errorMsg += 'Please allow location access and try again.';
+            console.log('Permission denied for location');
+            break;
+        case error.POSITION_UNAVAILABLE:
+            errorMsg += 'Location information is unavailable. Try moving to a different location or use manual entry.';
+            console.log('Position unavailable');
+            break;
+        case error.TIMEOUT:
+            errorMsg += 'Location request timed out twice. Please use manual entry below.';
+            console.log('Location timeout on both attempts');
+            break;
+        default:
+            errorMsg += 'Unknown location error.';
+            console.log('Unknown location error:', error);
+            break;
+    }
+    
+    status.innerHTML = `
+        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px;">
+            ❌ ${errorMsg}<br>
+            Please use manual entry below.
+        </div>
+    `;
+    
+    button.textContent = '📍 Try Again';
+    button.disabled = false;
+    button.style.backgroundColor = '#dc3545';
+}
 </script>
 {% endblock %}
 
