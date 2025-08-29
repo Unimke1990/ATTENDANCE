@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, make_response, session
+from flask import Flask, render_template, request, redirect, url_for, flash, make_response, session, send_file
 from database import db
 from models import Attendance, MeetingLocation, MeetingSession
 from sqlalchemy.exc import IntegrityError
@@ -7,6 +7,10 @@ import io
 import base64
 from geopy.distance import geodesic
 from functools import wraps
+import pandas as pd
+from datetime import datetime
+import tempfile
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here-change-in-production'
@@ -544,6 +548,156 @@ def archived_records():
         })
     
     return render_template('archived_records.html', session_data=session_data)
+
+@app.route('/download-archived-data/<format>')
+@admin_required
+def download_archived_data(format):
+    """Download archived attendance data in CSV or Excel format"""
+    if format not in ['csv', 'excel']:
+        flash('Invalid download format. Please choose CSV or Excel.', 'error')
+        return redirect(url_for('archived_records'))
+    
+    # Get all ended meeting sessions and their attendance data
+    archived_sessions = MeetingSession.query.filter_by(is_active=False).order_by(MeetingSession.end_time.desc()).all()
+    
+    # Prepare data for export
+    export_data = []
+    for session in archived_sessions:
+        attendees = Attendance.query.filter_by(meeting_session_id=session.id).all()
+        
+        for attendee in attendees:
+            export_data.append({
+                'Meeting Name': session.meeting_name,
+                'Meeting Date': session.start_time.strftime('%Y-%m-%d') if session.start_time else 'N/A',
+                'Meeting Start Time': session.start_time.strftime('%H:%M:%S') if session.start_time else 'N/A',
+                'Meeting End Time': session.end_time.strftime('%H:%M:%S') if session.end_time else 'N/A',
+                'Attendee Name': f"{attendee.firstname} {attendee.lastname} {attendee.surname}".strip(),
+                'Email': attendee.email,
+                'Phone': attendee.phone,
+                'Zone': attendee.zone or 'Not Specified',
+                'Group': attendee.group_name or 'Not Specified',
+                'Church': attendee.church or 'Not Specified',
+                'Category': attendee.category or 'Not Specified',
+                'Registration Time': attendee.timestamp.strftime('%Y-%m-%d %H:%M:%S') if attendee.timestamp else 'N/A',
+                'Location': f"{attendee.latitude}, {attendee.longitude}" if attendee.latitude and attendee.longitude else 'Not Available'
+            })
+    
+    if not export_data:
+        flash('No archived data available for download.', 'warning')
+        return redirect(url_for('archived_records'))
+    
+    # Create DataFrame
+    df = pd.DataFrame(export_data)
+    
+    # Generate filename with current timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    
+    if format == 'csv':
+        # Create temporary CSV file
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', newline='', encoding='utf-8') as tmp_file:
+            df.to_csv(tmp_file, index=False)
+            temp_filename = tmp_file.name
+        
+        filename = f'attendance_archive_{timestamp}.csv'
+        mimetype = 'text/csv'
+        
+    else:  # excel format
+        # Create temporary Excel file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
+            df.to_excel(tmp_file.name, index=False, engine='openpyxl')
+            temp_filename = tmp_file.name
+        
+        filename = f'attendance_archive_{timestamp}.xlsx'
+        mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    
+    def remove_temp_file():
+        try:
+            os.unlink(temp_filename)
+        except:
+            pass
+    
+    # Schedule temp file cleanup after response
+    response = make_response(send_file(temp_filename, mimetype=mimetype, as_attachment=True, download_name=filename))
+    
+    # Clean up temp file in background (this is a simple approach)
+    # In production, you might want a more robust cleanup mechanism
+    try:
+        os.unlink(temp_filename)
+    except:
+        pass  # File might already be deleted
+    
+    return response
+
+@app.route('/download-single-session/<int:session_id>/<format>')
+@admin_required
+def download_single_session(session_id, format):
+    """Download a single session's attendance data in CSV or Excel format"""
+    if format not in ['csv', 'excel']:
+        flash('Invalid download format. Please choose CSV or Excel.', 'error')
+        return redirect(url_for('archived_records'))
+    
+    # Get the specific session
+    session_data = MeetingSession.query.get_or_404(session_id)
+    attendees = Attendance.query.filter_by(meeting_session_id=session_id).all()
+    
+    if not attendees:
+        flash('No attendance data found for this session.', 'warning')
+        return redirect(url_for('archived_records'))
+    
+    # Prepare data for export
+    export_data = []
+    for attendee in attendees:
+        export_data.append({
+            'Meeting Name': session_data.meeting_name,
+            'Meeting Date': session_data.start_time.strftime('%Y-%m-%d') if session_data.start_time else 'N/A',
+            'Meeting Start Time': session_data.start_time.strftime('%H:%M:%S') if session_data.start_time else 'N/A',
+            'Meeting End Time': session_data.end_time.strftime('%H:%M:%S') if session_data.end_time else 'N/A',
+            'Attendee Name': f"{attendee.firstname} {attendee.lastname} {attendee.surname}".strip(),
+            'Email': attendee.email,
+            'Phone': attendee.phone,
+            'Zone': attendee.zone or 'Not Specified',
+            'Group': attendee.group_name or 'Not Specified',
+            'Church': attendee.church or 'Not Specified',
+            'Category': attendee.category or 'Not Specified',
+            'Registration Time': attendee.timestamp.strftime('%Y-%m-%d %H:%M:%S') if attendee.timestamp else 'N/A',
+            'Location': f"{attendee.latitude}, {attendee.longitude}" if attendee.latitude and attendee.longitude else 'Not Available'
+        })
+    
+    # Create DataFrame
+    df = pd.DataFrame(export_data)
+    
+    # Generate filename with session name and timestamp
+    safe_session_name = "".join(c for c in session_data.meeting_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    
+    if format == 'csv':
+        # Create temporary CSV file
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.csv', newline='', encoding='utf-8') as tmp_file:
+            df.to_csv(tmp_file, index=False)
+            temp_filename = tmp_file.name
+        
+        filename = f'{safe_session_name}_attendance_{timestamp}.csv'
+        mimetype = 'text/csv'
+        
+    else:  # excel format
+        # Create temporary Excel file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp_file:
+            df.to_excel(tmp_file.name, index=False, engine='openpyxl')
+            temp_filename = tmp_file.name
+        
+        filename = f'{safe_session_name}_attendance_{timestamp}.xlsx'
+        mimetype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    
+    # Schedule temp file cleanup after response
+    response = make_response(send_file(temp_filename, mimetype=mimetype, as_attachment=True, download_name=filename))
+    
+    # Clean up temp file
+    try:
+        os.unlink(temp_filename)
+    except:
+        pass
+    
+    return response
 
 if __name__ == '__main__':
     import socket
