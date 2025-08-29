@@ -24,6 +24,51 @@
                 </div>
             </div>
             
+            <!-- Detailed Breakdown -->
+            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <!-- Zone Breakdown -->
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4 style="color: white; margin: 0 0 10px 0; font-size: 1rem;">🏛️ By Zone</h4>
+                    {% for zone, count in zone_counts.items() %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 0.85rem;">{{ zone }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                    {% if not zone_counts %}
+                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">No data yet</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Group Breakdown -->
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4 style="color: white; margin: 0 0 10px 0; font-size: 1rem;">👥 By Group</h4>
+                    {% for group, count in group_counts.items() %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 0.85rem;">{{ group }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                    {% if not group_counts %}
+                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">No data yet</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Category Breakdown -->
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4 style="color: white; margin: 0 0 10px 0; font-size: 1rem;">🎯 By Category</h4>
+                    {% for category, count in category_counts.items() %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 0.85rem;">{{ category }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                    {% if not category_counts %}
+                    <p style="font-size: 0.8rem; opacity: 0.7; margin: 0;">No data yet</p>
+                    {% endif %}
+                </div>
+            </div>
+            
             <!-- End Meeting Button -->
             <div style="margin-top: 20px;">
                 <button onclick="confirmEndMeeting()" style="background: rgba(220,53,69,0.9); border: none; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: background 0.3s;">

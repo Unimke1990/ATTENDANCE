@@ -23,7 +23,13 @@ class Attendance(db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     
-    # New archiving fields
+    # New organizational fields
+    zone = db.Column(db.String(50), nullable=False)  # MCA, ZONE 1, ZONE 2
+    group_name = db.Column(db.String(100), nullable=False)  # VIRTUOUS, AUXANO, etc.
+    church = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(50), nullable=False)  # Leader, Member, Volunteer
+    
+    # Archiving fields
     meeting_session_id = db.Column(db.Integer, db.ForeignKey('meeting_session.id'), nullable=True)
     is_archived = db.Column(db.Boolean, default=False)
     

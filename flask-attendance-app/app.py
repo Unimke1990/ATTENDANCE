@@ -26,10 +26,34 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize database
 db.init_app(app)
 
-# Create database tables on startup
+# Create database tables on startup and handle migrations
 with app.app_context():
-    db.create_all()
-    print("Database tables created successfully!")
+    try:
+        # Try to create tables (handles new installations)
+        db.create_all()
+        
+        # Check if we need to migrate existing attendance records
+        # Add default values for new columns if they don't exist
+        existing_records = db.session.execute(db.text("SELECT COUNT(*) FROM attendance")).scalar()
+        if existing_records > 0:
+            # Check if new columns exist
+            try:
+                db.session.execute(db.text("SELECT zone FROM attendance LIMIT 1"))
+            except:
+                # Add new columns with default values for existing records
+                print("Adding new columns to existing attendance table...")
+                db.session.execute(db.text("ALTER TABLE attendance ADD COLUMN zone VARCHAR(50) DEFAULT 'MCA'"))
+                db.session.execute(db.text("ALTER TABLE attendance ADD COLUMN group_name VARCHAR(100) DEFAULT 'VIRTUOUS'"))
+                db.session.execute(db.text("ALTER TABLE attendance ADD COLUMN church VARCHAR(200) DEFAULT 'Unknown'"))
+                db.session.execute(db.text("ALTER TABLE attendance ADD COLUMN category VARCHAR(50) DEFAULT 'Member'"))
+                db.session.commit()
+                print("Database migration completed!")
+        
+        print("Database tables created/updated successfully!")
+    except Exception as e:
+        print(f"Database setup error: {e}")
+        # Fallback: just create tables
+        db.create_all()
 
 # Authentication decorator
 def admin_required(f):
@@ -103,6 +127,10 @@ def submit_attendance():
     surname = request.form['surname']
     email = request.form['email']
     phone = request.form['phone']
+    zone = request.form['zone']
+    group_name = request.form['group_name']
+    church = request.form['church']
+    category = request.form['category']
     user_latitude = request.form.get('latitude')
     user_longitude = request.form.get('longitude')
     
@@ -145,6 +173,10 @@ def submit_attendance():
             surname=surname,
             email=email,
             phone=phone,
+            zone=zone,
+            group_name=group_name,
+            church=church,
+            category=category,
             latitude=user_lat,
             longitude=user_lon
         )
@@ -188,11 +220,20 @@ def admin():
     active_session = get_active_meeting_session()
     current_attendance_count = get_current_attendance_count()
     last_ended_session = get_last_ended_meeting_session()
+    
+    # Get detailed counts
+    zone_counts = get_attendance_counts_by_zone()
+    group_counts = get_attendance_counts_by_group()
+    category_counts = get_attendance_counts_by_category()
+    
     return render_template('admin.html', 
                          active_location=active_location, 
                          active_session=active_session,
                          attendance_count=current_attendance_count,
-                         last_ended_session=last_ended_session)
+                         last_ended_session=last_ended_session,
+                         zone_counts=zone_counts,
+                         group_counts=group_counts,
+                         category_counts=category_counts)
 
 @app.route('/generate-qr')
 @admin_required
@@ -239,6 +280,54 @@ def get_active_meeting_session():
 def get_last_ended_meeting_session():
     """Get the most recently ended meeting session"""
     return MeetingSession.query.filter_by(is_active=False).order_by(MeetingSession.end_time.desc()).first()
+
+def get_attendance_counts_by_zone():
+    """Get attendance counts by zone for current session"""
+    active_session = get_active_meeting_session()
+    if not active_session:
+        return {}
+    
+    from sqlalchemy import func
+    counts = db.session.query(
+        Attendance.zone, 
+        func.count(Attendance.id).label('count')
+    ).filter(
+        Attendance.meeting_session_id == active_session.id
+    ).group_by(Attendance.zone).all()
+    
+    return {zone: count for zone, count in counts}
+
+def get_attendance_counts_by_group():
+    """Get attendance counts by group for current session"""
+    active_session = get_active_meeting_session()
+    if not active_session:
+        return {}
+    
+    from sqlalchemy import func
+    counts = db.session.query(
+        Attendance.group_name, 
+        func.count(Attendance.id).label('count')
+    ).filter(
+        Attendance.meeting_session_id == active_session.id
+    ).group_by(Attendance.group_name).all()
+    
+    return {group: count for group, count in counts}
+
+def get_attendance_counts_by_category():
+    """Get attendance counts by category for current session"""
+    active_session = get_active_meeting_session()
+    if not active_session:
+        return {}
+    
+    from sqlalchemy import func
+    counts = db.session.query(
+        Attendance.category, 
+        func.count(Attendance.id).label('count')
+    ).filter(
+        Attendance.meeting_session_id == active_session.id
+    ).group_by(Attendance.category).all()
+    
+    return {category: count for category, count in counts}
 
 def get_current_attendance_count():
     """Get the count of attendees for the current (non-archived) session"""
