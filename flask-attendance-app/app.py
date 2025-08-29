@@ -166,6 +166,9 @@ def submit_attendance():
         user_lat, user_lon = None, None
 
     try:
+        # Get the active meeting session to link this attendance record
+        active_session = get_active_meeting_session()
+        
         # Create a new Attendance record
         new_attendance = Attendance(
             firstname=firstname,
@@ -178,7 +181,8 @@ def submit_attendance():
             church=church,
             category=category,
             latitude=user_lat,
-            longitude=user_lon
+            longitude=user_lon,
+            meeting_session_id=active_session.id if active_session else None
         )
 
         #save to database
@@ -292,7 +296,9 @@ def get_attendance_counts_by_zone():
         Attendance.zone, 
         func.count(Attendance.id).label('count')
     ).filter(
-        Attendance.meeting_session_id == active_session.id
+        Attendance.meeting_session_id == active_session.id,
+        Attendance.zone.isnot(None),
+        Attendance.zone != ''
     ).group_by(Attendance.zone).all()
     
     return {zone: count for zone, count in counts}
@@ -308,7 +314,9 @@ def get_attendance_counts_by_group():
         Attendance.group_name, 
         func.count(Attendance.id).label('count')
     ).filter(
-        Attendance.meeting_session_id == active_session.id
+        Attendance.meeting_session_id == active_session.id,
+        Attendance.group_name.isnot(None),
+        Attendance.group_name != ''
     ).group_by(Attendance.group_name).all()
     
     return {group: count for group, count in counts}
@@ -324,7 +332,9 @@ def get_attendance_counts_by_category():
         Attendance.category, 
         func.count(Attendance.id).label('count')
     ).filter(
-        Attendance.meeting_session_id == active_session.id
+        Attendance.meeting_session_id == active_session.id,
+        Attendance.category.isnot(None),
+        Attendance.category != ''
     ).group_by(Attendance.category).all()
     
     return {category: count for category, count in counts}
