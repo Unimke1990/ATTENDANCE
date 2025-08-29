@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Archived Records - Attendance Tracker{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #007bff; margin-bottom: 10px;">📚 Archived Meeting Records</h1>
+        <p style="color: #666; font-size: 16px;">View attendance records from past meetings</p>
+    </div>
+    
+    <!-- Back to Admin Button -->
+    <div style="margin-bottom: 20px;">
+        <a href="{{ url_for('admin') }}" style="background: #6c757d; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px;">
+            ← Back to Admin Dashboard
+        </a>
+    </div>
+    
+    {% if session_data %}
+        {% for data in session_data %}
+        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 25px;">
+            <!-- Meeting Header -->
+            <div style="border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; margin-bottom: 20px;">
+                <h2 style="color: #333; margin: 0 0 5px 0;">📍 {{ data.session.meeting_name }}</h2>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; color: #666; font-size: 14px;">
+                    <span>🕐 Started: {{ data.session.start_time.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                    {% if data.session.end_time %}
+                    <span>🏁 Ended: {{ data.session.end_time.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                    {% endif %}
+                    <span style="font-weight: bold; color: #28a745;">👥 {{ data.total_count }} Total Attendees</span>
+                </div>
+            </div>
+            
+            <!-- Summary Statistics -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <!-- Zone Breakdown -->
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #495057; margin: 0 0 10px 0; font-size: 1rem;">🏛️ By Zone</h4>
+                    {% for zone, count in data.zone_counts.items() %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 0.9rem;">{{ zone }}</span>
+                        <strong style="color: #007bff;">{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                    {% if not data.zone_counts %}
+                    <p style="font-size: 0.8rem; color: #6c757d; margin: 0;">No zone data</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Group Breakdown -->
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #495057; margin: 0 0 10px 0; font-size: 1rem;">👥 By Group</h4>
+                    {% for group, count in data.group_counts.items() %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 0.9rem;">{{ group }}</span>
+                        <strong style="color: #28a745;">{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                    {% if not data.group_counts %}
+                    <p style="font-size: 0.8rem; color: #6c757d; margin: 0;">No group data</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Category Breakdown -->
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="color: #495057; margin: 0 0 10px 0; font-size: 1rem;">🎯 By Category</h4>
+                    {% for category, count in data.category_counts.items() %}
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-size: 0.9rem;">{{ category }}</span>
+                        <strong style="color: #fd7e14;">{{ count }}</strong>
+                    </div>
+                    {% endfor %}
+                    {% if not data.category_counts %}
+                    <p style="font-size: 0.8rem; color: #6c757d; margin: 0;">No category data</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Detailed Attendee List -->
+            <details style="margin-top: 20px;">
+                <summary style="cursor: pointer; font-weight: bold; color: #007bff; padding: 10px 0;">
+                    📋 View Detailed Attendee List ({{ data.total_count }} people)
+                </summary>
+                
+                <div style="margin-top: 15px; overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Name</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Zone</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Group</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Church</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Category</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attendee in data.attendees %}
+                            <tr style="border-bottom: 1px solid #dee2e6;">
+                                <td style="padding: 8px;">{{ attendee.firstname }} {{ attendee.lastname }} {{ attendee.surname }}</td>
+                                <td style="padding: 8px;">{{ attendee.zone or 'N/A' }}</td>
+                                <td style="padding: 8px;">{{ attendee.group_name or 'N/A' }}</td>
+                                <td style="padding: 8px;">{{ attendee.church or 'N/A' }}</td>
+                                <td style="padding: 8px;">{{ attendee.category or 'N/A' }}</td>
+                                <td style="padding: 8px;">{{ attendee.timestamp.strftime('%I:%M %p') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <h3 style="color: #666; margin-bottom: 15px;">📭 No Archived Records Yet</h3>
+            <p style="color: #666; margin-bottom: 20px;">Complete some meetings first, then their records will appear here.</p>
+            <a href="{{ url_for('admin') }}" style="background: #007bff; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                Start a New Meeting
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

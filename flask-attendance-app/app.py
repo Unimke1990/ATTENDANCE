@@ -494,6 +494,47 @@ def clear_all_records():
     
     return redirect(url_for('admin'))
 
+@app.route('/archived-records')
+@admin_required
+def archived_records():
+    """View all archived meeting sessions and their attendance records"""
+    # Get all ended meeting sessions (archived)
+    archived_sessions = MeetingSession.query.filter_by(is_active=False).order_by(MeetingSession.end_time.desc()).all()
+    
+    # Get summary stats for each session
+    session_data = []
+    for session in archived_sessions:
+        attendee_records = Attendance.query.filter_by(meeting_session_id=session.id).all()
+        
+        # Count by organizational structure
+        zone_counts = {}
+        group_counts = {}
+        category_counts = {}
+        
+        for attendee in attendee_records:
+            # Count zones
+            if attendee.zone:
+                zone_counts[attendee.zone] = zone_counts.get(attendee.zone, 0) + 1
+            
+            # Count groups
+            if attendee.group_name:
+                group_counts[attendee.group_name] = group_counts.get(attendee.group_name, 0) + 1
+            
+            # Count categories
+            if attendee.category:
+                category_counts[attendee.category] = category_counts.get(attendee.category, 0) + 1
+        
+        session_data.append({
+            'session': session,
+            'attendees': attendee_records,
+            'total_count': len(attendee_records),
+            'zone_counts': zone_counts,
+            'group_counts': group_counts,
+            'category_counts': category_counts
+        })
+    
+    return render_template('archived_records.html', session_data=session_data)
+
 if __name__ == '__main__':
     import socket
     with app.app_context():
