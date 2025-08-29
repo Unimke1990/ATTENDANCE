@@ -179,10 +179,28 @@
         <p style="color: #666; margin-bottom: 10px;">• Optimized for mobile scanning and form completion</p>
         <p style="color: #666;">• Print-ready - works on paper, screens, or digital displays</p>
     </div>
+    
+    <!-- Dangerous Actions Section -->
+    <div style="background: #fff5f5; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 2px solid #fed7d7;">
+        <h3 style="color: #c53030; margin-bottom: 15px;">⚠️ Dangerous Actions</h3>
+        <p style="color: #666; margin-bottom: 15px; font-size: 14px;">These actions cannot be undone. Use with extreme caution!</p>
+        
+        <button onclick="confirmClearAllRecords()" style="background: #dc3545; border: none; color: white; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background 0.3s;">
+            🗑️ Clear All Attendance Records
+        </button>
+        
+        <p style="color: #666; margin: 10px 0 0 0; font-size: 12px; font-style: italic;">
+            This will permanently delete ALL attendance records and meeting sessions from the database.
+        </p>
+    </div>
 </div>
 
 <!-- Hidden form for ending meeting -->
 <form id="endMeetingForm" method="POST" action="{{ url_for('end_meeting') }}" style="display: none;">
+</form>
+
+<!-- Hidden form for clearing all records -->
+<form id="clearRecordsForm" method="POST" action="{{ url_for('clear_all_records') }}" style="display: none;">
 </form>
 
 {% block scripts %}
@@ -208,6 +226,28 @@ function confirmEndMeeting() {
     
     if (confirm(message)) {
         document.getElementById('endMeetingForm').submit();
+    }
+}
+
+// Confirm clearing all records with strong warning
+function confirmClearAllRecords() {
+    const message = `🚨 DANGER: DELETE ALL ATTENDANCE RECORDS? 🚨\n\n` +
+                   `This will PERMANENTLY delete:\n` +
+                   `• ALL attendance records from ALL meetings\n` +
+                   `• ALL meeting sessions (past and present)\n` +
+                   `• This data CANNOT be recovered\n\n` +
+                   `Are you absolutely sure you want to proceed?\n\n` +
+                   `Type "DELETE ALL" below to confirm:`;
+    
+    const confirmation = prompt(message);
+    
+    if (confirmation === "DELETE ALL") {
+        const finalWarning = "FINAL WARNING!\n\nThis will delete ALL your attendance data FOREVER.\n\nClick OK to proceed or Cancel to stop.";
+        if (confirm(finalWarning)) {
+            document.getElementById('clearRecordsForm').submit();
+        }
+    } else if (confirmation !== null) {
+        alert("Incorrect confirmation text. Action cancelled for your safety.");
     }
 }
 </script>

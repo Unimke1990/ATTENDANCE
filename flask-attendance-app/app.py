@@ -468,6 +468,32 @@ def end_meeting():
     
     return redirect(url_for('admin'))
 
+@app.route('/clear-all-records', methods=['POST'])
+@admin_required
+def clear_all_records():
+    """Clear all attendance records and meeting sessions - DANGEROUS!"""
+    try:
+        # Get counts before deletion
+        attendance_count = Attendance.query.count()
+        session_count = MeetingSession.query.count()
+        
+        # Delete all attendance records
+        Attendance.query.delete()
+        
+        # Delete all meeting sessions
+        MeetingSession.query.delete()
+        
+        # Commit the changes
+        db.session.commit()
+        
+        flash(f'Successfully cleared all data! Deleted {attendance_count} attendance records and {session_count} meeting sessions.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error clearing records: {str(e)}', 'error')
+    
+    return redirect(url_for('admin'))
+
 if __name__ == '__main__':
     import socket
     with app.app_context():
