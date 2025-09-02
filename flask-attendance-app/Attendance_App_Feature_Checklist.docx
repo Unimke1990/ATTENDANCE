@@ -1,0 +1,59 @@
+Attendance App for Real Estate Companies
+
+Overview:
+The Attendance App is a modern, cloud-based solution designed to help organizations efficiently track staff presence at office locations. Using QR code sign-in and geofencing technology, the app ensures that only staff physically present at the office can register their attendance. It provides real-time dashboards, detailed reporting, and customizable features to meet the unique needs of companies with multiple offices and large teams. The app is mobile-friendly, secure, and scalable, making it ideal for businesses seeking reliable attendance management and actionable insights.
+
+Feature Checklist:
+
+Core Attendance Features
+- Staff sign-in via QR code at office entrance
+- Geofenced sign-in (only within office premises)
+- Real-time dashboard showing who has signed in
+- Total count of staff signed in for the day
+- Timestamp for each sign-in
+
+Staff Management
+- Pre-loaded staff directory (names, emails, staff IDs)
+- Staff login with unique code or company email
+- Import staff list from CSV/Excel
+
+Reporting & Analytics
+- Daily attendance summary (downloadable/exportable)
+- Automated daily/weekly attendance reports via email
+- Attendance trends and analytics (charts/graphs)
+- Export attendance data to CSV/Excel/PDF
+
+Notifications & Alerts
+- Email/SMS notification to staff (reminders, confirmations)
+- Alert for late or absent staff
+- Manager notification when team members sign in
+
+Admin & Manager Controls
+- Multiple admin accounts (role-based access)
+- Managers can view attendance for their own teams
+- Edit or correct sign-in records
+- Delete individual or all meeting records
+
+Location & Office Management
+- Support for multiple office locations
+- Custom geofence radius per office
+- Office-specific attendance reports
+
+User Experience & Branding
+- Custom branding (company logo, colors)
+- Mobile-optimized sign-in form
+- Help section or tooltips for users
+- Confirmation dialogs for important actions
+
+Security & Reliability
+- Secure login for admins/managers
+- Audit log of admin actions
+- Data backup and restore functionality
+
+Other Custom Features
+- API access for integration with HR or payroll systems
+- Progressive Web App (installable on mobile devices)
+- Custom fields (e.g., department, role, shift)
+
+Instructions for Client:
+Please tick (✔️) the features you want for your organization. You can also add any other custom requirements.
