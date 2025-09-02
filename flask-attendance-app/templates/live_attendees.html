@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Live Attendees - {{ meeting_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <h2 style="color: #007bff; margin-bottom: 20px; text-align: center;">👁️ Live Attendees for "{{ meeting_name }}"</h2>
+    {% if attendees %}
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Name</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Email</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Phone</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Zone</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Group</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Church</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Category</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attendee in attendees %}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 8px;">{{ attendee.firstname }} {{ attendee.lastname }} {{ attendee.surname }}</td>
+                    <td style="padding: 8px;">{{ attendee.email }}</td>
+                    <td style="padding: 8px;">{{ attendee.phone }}</td>
+                    <td style="padding: 8px;">{{ attendee.zone }}</td>
+                    <td style="padding: 8px;">{{ attendee.group_name }}</td>
+                    <td style="padding: 8px;">{{ attendee.church }}</td>
+                    <td style="padding: 8px;">{{ attendee.category }}</td>
+                    <td style="padding: 8px;">{{ attendee.timestamp.strftime('%I:%M %p') if attendee.timestamp else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="background: #fff3cd; color: #856404; padding: 20px; border-radius: 8px; text-align: center; margin-top: 30px;">
+        <strong>No attendees have registered for this meeting yet.</strong>
+    </div>
+    {% endif %}
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ url_for('admin') }}" class="btn btn-primary" style="max-width: 300px;">← Back to Admin Dashboard</a>
+    </div>
+</div>
+{% endblock %}

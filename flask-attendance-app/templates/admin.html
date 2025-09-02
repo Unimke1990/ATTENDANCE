@@ -74,6 +74,9 @@
                 <button onclick="confirmEndMeeting()" style="background: rgba(220,53,69,0.9); border: none; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: background 0.3s;">
                     🏁 End Current Meeting
                 </button>
+                    <a href="{{ url_for('view_live_attendees') }}" style="background: #007bff; color: white; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; text-decoration: none; display: inline-block; margin-left: 10px; transition: background 0.3s;">
+                        👁️ View Attendees Records
+                    </a>
             </div>
         {% elif active_location %}
             <h2 style="color: white; margin: 0 0 10px 0;">📍 Location: {{ active_location.name }}</h2>

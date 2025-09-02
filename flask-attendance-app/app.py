@@ -699,6 +699,33 @@ def download_single_session(session_id, format):
     
     return response
 
+@app.route('/view-live-attendees')
+@admin_required
+def view_live_attendees():
+    """Show all attendee details for the current active meeting session"""
+    active_session = get_active_meeting_session()
+    if not active_session:
+        flash('No active meeting session found.', 'error')
+        return redirect(url_for('admin'))
+    attendees = Attendance.query.filter_by(meeting_session_id=active_session.id, is_archived=False).all()
+    return render_template('live_attendees.html', attendees=attendees, meeting_name=active_session.meeting_name)
+
+@app.route('/clear-meeting-record/<int:session_id>', methods=['POST'])
+@admin_required
+def clear_meeting_record(session_id):
+    """Delete a specific meeting session and all its attendance records"""
+    try:
+        # Delete attendance records for this session
+        Attendance.query.filter_by(meeting_session_id=session_id).delete()
+        # Delete the meeting session itself
+        MeetingSession.query.filter_by(id=session_id).delete()
+        db.session.commit()
+        flash('Meeting and its records deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting meeting record: {str(e)}', 'error')
+    return redirect(url_for('archived_records'))
+
 if __name__ == '__main__':
     import socket
     with app.app_context():
