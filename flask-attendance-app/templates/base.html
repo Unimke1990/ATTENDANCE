@@ -208,6 +208,9 @@
     
     <main class="container">
         {% block content %}{% endblock %}
+        <div id="installBanner" style="display:none; text-align:center; margin:20px 0;">
+            <button id="installBtn" class="btn btn-primary" style="max-width:300px; margin:auto;">📲 Install Attendance App</button>
+        </div>
     </main>
     
     <footer class="footer">
@@ -218,6 +221,29 @@
         <script>
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register("{{ url_for('static', filename='service-worker.js') }}");
+            }
+
+            // PWA Install Banner
+            let deferredPrompt;
+            const installBanner = document.getElementById('installBanner');
+            const installBtn = document.getElementById('installBtn');
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBanner.style.display = 'block';
+            });
+            if (installBtn) {
+                installBtn.addEventListener('click', () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') {
+                                installBanner.style.display = 'none';
+                            }
+                            deferredPrompt = null;
+                        });
+                    }
+                });
             }
         </script>
 </body>
