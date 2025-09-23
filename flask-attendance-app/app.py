@@ -138,6 +138,8 @@ def submit_attendance():
     user_latitude = request.form.get('latitude')
     user_longitude = request.form.get('longitude')
     # Geolocation enforcement disabled for this meeting
+    user_lat = None
+    user_lon = None
 
     try:
         # Get the active meeting session to link this attendance record
