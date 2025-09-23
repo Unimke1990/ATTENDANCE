@@ -129,7 +129,7 @@ def submit_attendance():
     firstname = request.form['firstname']
     lastname = request.form['lastname']
     surname = request.form['surname']
-    email = request.form['email']
+    email = request.form.get('email', None)
     phone = request.form['phone']
     zone = request.form['zone']
     group_name = request.form['group_name']
