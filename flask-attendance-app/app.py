@@ -137,34 +137,7 @@ def submit_attendance():
     category = request.form['category']
     user_latitude = request.form.get('latitude')
     user_longitude = request.form.get('longitude')
-
-    # Strict geofencing: block if location not detected
-    if not user_latitude or not user_longitude:
-        flash('Location not detected. Please enable location services and try again. Attendance cannot be recorded without location.', 'error')
-        return redirect(url_for('attendance_form'))
-    
-    # Get active meeting location for validation
-    active_location = get_active_meeting_location()
-    if not active_location:
-        flash('No meeting location set. Please contact the organizer.', 'error')
-        return redirect(url_for('attendance_form'))
-    
-    # GPS Validation - Check if user is within allowed radius
-    try:
-        user_lat = float(user_latitude)
-        user_lon = float(user_longitude)
-        # Calculate distance from meeting location
-        distance = calculate_distance(
-            active_location.latitude, active_location.longitude,
-            user_lat, user_lon
-        )
-        # Check if user is within allowed radius
-        if distance > active_location.radius_meters:
-            flash(f'You are too far from the meeting location. You are {distance:.1f} meters away, but must be within {active_location.radius_meters} meters to register attendance.', 'error')
-            return redirect(url_for('attendance_form'))
-    except (ValueError, TypeError):
-        flash('Invalid location data. Please enable location services and try again.', 'error')
-        return redirect(url_for('attendance_form'))
+    # Geolocation enforcement disabled for this meeting
 
     try:
         # Get the active meeting session to link this attendance record

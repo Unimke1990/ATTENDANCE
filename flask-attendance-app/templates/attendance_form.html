@@ -41,10 +41,7 @@
     <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <form method="POST" action="/submit-attendance">
             <div class="form-group">
-                <input type="hidden" id="latitude" name="latitude">
-                <input type="hidden" id="longitude" name="longitude">
-                <div id="locationError" style="display:none; background:#f8d7da; color:#721c24; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:15px;">⚠️ Location not detected. Please enable location services and reload the page.</div>
-                <div id="distanceInfo" style="display:none; background:#e2e3e5; color:#383d41; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:15px;"></div>
+                <!-- Geolocation enforcement disabled for this meeting -->
                 <div class="form-group">
                 <label for="firstname">📝 First Name:</label>
                 <input type="text" id="firstname" name="firstname" required 
@@ -131,100 +128,6 @@
 </div>
 
 {% block scripts %}
-<script>
-// Assign meeting location and radius as JS variables using Jinja and parseFloat/parseInt
-var meetingLat = parseFloat("{{ active_location.latitude|default(0) }}");
-var meetingLon = parseFloat("{{ active_location.longitude|default(0) }}");
-var allowedRadius = parseInt("{{ active_location.radius_meters|default(30) }}");
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('firstname').focus();
-    const form = document.querySelector('form');
-    const submitBtn = document.getElementById('submitBtn');
-    let isSubmitting = false;
-    let locationDetected = false;
-    let withinRadius = false;
-    const locationError = document.getElementById('locationError');
-    const distanceInfo = document.getElementById('distanceInfo');
-
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        // Haversine formula
-        const toRad = x => x * Math.PI / 180;
-        const R = 6371000; // meters
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    }
-
-    function setLocation(lat, lon) {
-        document.getElementById('latitude').value = lat;
-        document.getElementById('longitude').value = lon;
-        locationDetected = true;
-        locationError.style.display = 'none';
-        // Calculate distance
-        const distance = calculateDistance(meetingLat, meetingLon, lat, lon);
-        if (distance <= allowedRadius) {
-            withinRadius = true;
-            distanceInfo.style.display = 'block';
-            distanceInfo.style.background = '#d4edda';
-            distanceInfo.style.color = '#155724';
-            distanceInfo.innerHTML = `✅ You are within ${allowedRadius} meters of the meeting location. (<b>${distance.toFixed(1)}m</b> away)`;
-            submitBtn.disabled = false;
-        } else {
-            withinRadius = false;
-            distanceInfo.style.display = 'block';
-            distanceInfo.style.background = '#f8d7da';
-            distanceInfo.style.color = '#721c24';
-            distanceInfo.innerHTML = `❌ You are <b>${distance.toFixed(1)}m</b> away. You must be within <b>${allowedRadius}m</b> to sign attendance.`;
-            submitBtn.disabled = true;
-        }
-    }
-    function showLocationError() {
-        locationError.style.display = 'block';
-        distanceInfo.style.display = 'none';
-        submitBtn.disabled = true;
-    }
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(pos) {
-            setLocation(pos.coords.latitude, pos.coords.longitude);
-        }, function(err) {
-            showLocationError();
-        }, { enableHighAccuracy: false, timeout: 15000 });
-    } else {
-        showLocationError();
-    }
-
-    form.addEventListener('submit', function(e) {
-        if (isSubmitting) {
-            e.preventDefault();
-            return false;
-        }
-        // Block submission if location not detected or not within radius
-        if (!locationDetected) {
-            e.preventDefault();
-            showLocationError();
-            return false;
-        }
-        if (!withinRadius) {
-            e.preventDefault();
-            distanceInfo.style.display = 'block';
-            distanceInfo.style.background = '#f8d7da';
-            distanceInfo.style.color = '#721c24';
-            distanceInfo.innerHTML = `❌ You are not within the required radius to sign attendance.`;
-            submitBtn.disabled = true;
-            return false;
-        }
-        isSubmitting = true;
-        submitBtn.innerHTML = '⏳ Submitting...';
-        submitBtn.disabled = true;
-        console.log('Form is submitting...');
-    });
-});
-</script>
+<!-- Geolocation enforcement disabled for this meeting -->
 {% endblock %}
 {% endblock %}
